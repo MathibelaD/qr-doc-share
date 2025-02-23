@@ -17,7 +17,16 @@ export default {
           light: '#059669',
           dark: '#064E3B'
         }
-      }
+      },
+      animation: {
+        tilt: 'tilt 10s infinite linear',
+      },
+      keyframes: {
+        tilt: {
+          '0%, 100%': { transform: 'rotate(-1deg)' },
+          '50%': { transform: 'rotate(1deg)' },
+        },
+      },
     },
   },
   plugins: [],
