@@ -7,8 +7,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#2563eb',  // Customize your color scheme
-        secondary: '#64748b',
+        primary: {
+          DEFAULT: '#047857',  // main green
+          100: '#34D399',     // light mint
+          dark: '#065F46'     // darker green
+        },
+        secondary: {
+          DEFAULT: '#065F46',
+          light: '#059669',
+          dark: '#064E3B'
+        }
       }
     },
   },
