@@ -19,6 +19,7 @@ export function useFileUpload() {
   const downloadUrl = ref('')
   const qrCodeUrl = ref('')
 
+  console.log("Yebo====================")
   async function uploadFile(file: File) {
     try {
       isUploading.value = true

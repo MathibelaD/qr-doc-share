@@ -214,10 +214,13 @@ const clearFile = () => {
 }
 
 const startUpload = async () => {
+  console.log("beofre")
   if (!selectedFile.value) return
-
+  console.log("after")
   currentStep.value = 1
-  await uploadFile(selectedFile.value)
+  const check = await uploadFile(selectedFile.value)
+
+  console.log("after afetr", check)
 
   if (!uploadError.value) {
     currentStep.value = 2
