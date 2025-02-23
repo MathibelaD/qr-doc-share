@@ -27,7 +27,7 @@
           <div class="ml-6 relative group">
             <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
             <router-link 
-              to="/try-now"
+              to="/upload"
               class="relative flex items-center px-6 py-3 bg-white rounded-lg leading-none"
             >
               <span class="pr-6 font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
@@ -75,7 +75,7 @@
 
           <!-- Mobile CTA -->
           <router-link 
-            to="/try-now"
+            to="/upload"
             class="block mt-4 mx-4 px-4 py-3 bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg text-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
             @click="isOpen = false"
           >

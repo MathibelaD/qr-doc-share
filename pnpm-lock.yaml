@@ -20,6 +20,9 @@ importers:
       pinia:
         specifier: ^3.0.1
         version: 3.0.1(typescript@5.7.3)(vue@3.5.13(typescript@5.7.3))
+      qrcode-vue3:
+        specifier: ^1.7.1
+        version: 1.7.1
       qrcode.vue:
         specifier: ^3.6.0
         version: 3.6.0(vue@3.5.13(typescript@5.7.3))
@@ -1483,6 +1486,12 @@ packages:
   protobufjs@7.4.0:
     resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
     engines: {node: '>=12.0.0'}
+
+  qrcode-generator@1.4.4:
+    resolution: {integrity: sha512-HM7yY8O2ilqhmULxGMpcHSF1EhJJ9yBj8gvDEuZ6M+KGJ0YY2hKpnXvRD+hZPLrDVck3ExIGhmPtSdcjC+guuw==}
+
+  qrcode-vue3@1.7.1:
+    resolution: {integrity: sha512-Xa82NslFJUqsnQbLtc1qO+xPEOeFaTRxktg3ugRd2Pk116kta1X+7GLSEPQj9gor8jWVyfmLmhYZHuANnRZoLQ==}
 
   qrcode.vue@3.6.0:
     resolution: {integrity: sha512-vQcl2fyHYHMjDO1GguCldJxepq2izQjBkDEEu9NENgfVKP6mv/e2SU62WbqYHGwTgWXLhxZ1NCD1dAZKHQq1fg==}
@@ -3270,6 +3279,12 @@ snapshots:
       '@protobufjs/utf8': 1.1.0
       '@types/node': 22.13.5
       long: 5.3.1
+
+  qrcode-generator@1.4.4: {}
+
+  qrcode-vue3@1.7.1:
+    dependencies:
+      qrcode-generator: 1.4.4
 
   qrcode.vue@3.6.0(vue@3.5.13(typescript@5.7.3)):
     dependencies:
