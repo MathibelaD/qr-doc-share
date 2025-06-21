@@ -3,9 +3,16 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <!-- Upload Status Steps -->
       <div class="mb-12">
-        <div class="flex items-center justify-center space-x-12">
-          <div v-for="(step, index) in steps" :key="step.id" class="flex items-center">
-            <div class="flex flex-col items-center" :class="{ 'opacity-50': currentStep < index }">
+        <div class="flex flex-wrap justify-center gap-6 sm:gap-12">
+          <div
+            v-for="(step, index) in steps"
+            :key="step.id"
+            class="flex items-center"
+          >
+            <div
+              class="flex flex-col items-center"
+              :class="{ 'opacity-50': currentStep < index }"
+            >
               <div
                 class="w-10 h-10 rounded-full flex items-center justify-center border-2 mb-2"
                 :class="[
@@ -22,10 +29,10 @@
               </div>
               <span class="text-sm font-medium text-gray-900">{{ step.name }}</span>
             </div>
-            <!-- Connector line -->
+
             <div
               v-if="index < steps.length - 1"
-              class="w-20 h-0.5 mx-4"
+              class="w-12 h-0.5 mx-2 sm:mx-4"
               :class="currentStep > index ? 'bg-primary' : 'bg-gray-300'"
             />
           </div>
@@ -84,7 +91,6 @@
             </div>
           </div>
 
-          <!-- Error Display -->
           <div v-if="uploadError" class="mt-4 p-4 bg-red-50 rounded-md">
             <div class="flex">
               <ExclamationCircleIcon class="h-5 w-5 text-red-400" />
@@ -110,8 +116,7 @@
             <p class="mt-1 text-sm text-gray-500">Your document has been uploaded successfully</p>
           </div>
 
-          <div class="bg-gray-50 p-6 rounded-lg inline-block">
-            <!-- Bigger QR code size -->
+          <div class="bg-gray-50 p-6 rounded-lg inline-block max-w-full overflow-auto">
             <QRCodeVue3
               :value="downloadUrl"
               :size="300"
@@ -125,17 +130,17 @@
             <p class="text-sm text-gray-500">
               Share this QR code with others to give them access to your document
             </p>
-            <div class="flex justify-center space-x-4">
+            <div class="flex flex-col sm:flex-row justify-center items-center sm:space-x-4 space-y-4 sm:space-y-0">
               <button
                 @click="downloadQR"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 <ArrowDownTrayIcon class="h-4 w-4 mr-2" />
                 Download QR
               </button>
               <button
                 @click="copyLink"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
               >
                 <LinkIcon class="h-4 w-4 mr-2" />
                 Copy Link
@@ -147,6 +152,7 @@
     </div>
   </main>
 </template>
+
 
 <script setup lang="ts">
 import { ref } from 'vue'
