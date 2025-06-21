@@ -53,7 +53,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { DocumentService, DocumentInfo } from '@/services/DocumentService';
+import { DocumentService } from '@/services/DocumentService';
+import type { DocumentInfo } from '@/services/DocumentService';
 import { DocumentIcon, ExclamationCircleIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 
 const route = useRoute();

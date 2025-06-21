@@ -19,10 +19,10 @@ router.post('/upload', upload.single('document'), async (req, res) => {
 
     const drive = google.drive({ version: 'v3', auth: await auth.getClient() });
 
-    const fileMetadata = { name: req.file.originalname };
+    const fileMetadata = { name: req?.file?.originalname };
     const media = {
-      mimeType: req.file.mimetype,
-      body: fs.createReadStream(req.file.path),
+      mimeType: req?.file?.mimetype,
+      body: fs.createReadStream(req?.file?.path || ''),
     };
 
     const uploaded = await drive.files.create({
@@ -38,7 +38,7 @@ router.post('/upload', upload.single('document'), async (req, res) => {
       requestBody: { role: 'reader', type: 'anyone' },
     });
 
-    fs.unlinkSync(req.file.path);
+    fs.unlinkSync(req?.file?.path || '');
 
     const publicLink = `https://drive.google.com/uc?id=${uploaded.data.id}&export=download`;
     console.log('Returning public link:', publicLink);
