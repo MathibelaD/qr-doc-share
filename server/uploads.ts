@@ -1,6 +1,7 @@
 // server/upload.js
 import express from 'express';
 import multer from 'multer';
+import type { Request, Response } from 'express';
 const { google } = require('googleapis');
 import fs from 'fs';
 
@@ -13,7 +14,7 @@ const auth = new google.auth.GoogleAuth({
 });
 
 console.log("auth", auth)
-router.post('/upload', upload.single('document'), async (req, res) => {
+router.post('/upload', upload.single('document'), async (req: Request, res: Response) => {
   try {
     console.log('Received upload request:', req.file);
 
