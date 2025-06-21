@@ -134,7 +134,18 @@ import {
   LinkIcon,
   ExclamationCircleIcon
 } from '@heroicons/vue/24/outline'
-import { useFileUpload } from '@/firebase/useFileUpload'
+// To this
+import { useFileUpload } from '@/services/useFileUpload'
+
+// And update the call
+const {
+  uploadFile,
+  uploadProgress,
+  isUploading,
+  uploadError,
+  downloadUrl,
+  qrCodeUrl
+} = useFileUpload()
 
 
 // Add template refs interface
@@ -152,16 +163,6 @@ const triggerFileInput = () => {
   }
 }
 
-
-// Use the existing upload composable
-const {
-  uploadFile,
-  uploadProgress,
-  isUploading,
-  uploadError,
-  downloadUrl,
-  qrCodeUrl
-} = useFileUpload()
 
 // Steps configuration
 const steps = [
@@ -231,21 +232,69 @@ const startUpload = async () => {
 }
 
 const downloadQR = () => {
-  const svg = document.querySelector('.qrcode svg') as SVGElement
-  if (svg) {
-    const svgData = new XMLSerializer().serializeToString(svg)
-    const blob = new Blob([svgData], { type: 'image/svg+xml' })
-    const url = URL.createObjectURL(blob)
-
-    const link = document.createElement('a')
-    link.href = url
-    link.download = 'qrcode.svg'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  }
-}
+  setTimeout(() => {
+    const svg = document.querySelector('.qrcode svg') || 
+                document.querySelector('.vue-qrcode svg') ||
+                document.querySelector('svg');
+                
+    if (svg) {
+      try {
+        // Create a canvas element
+        const canvas = document.createElement('canvas');
+        const svgRect = svg.getBoundingClientRect();
+        
+        // Set canvas dimensions to match SVG
+        canvas.width = svgRect.width;
+        canvas.height = svgRect.height;
+        
+        // Get canvas context
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          throw new Error('Could not get canvas context');
+        }
+        
+        // Create a SVG data URL
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+        const URL = window.URL || window.webkitURL || window;
+        const svgUrl = URL.createObjectURL(svgBlob);
+        
+        // Create an image
+        const img = new Image();
+        
+        // Set up image load callback
+        img.onload = () => {
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(svgUrl);
+          
+          // Convert canvas to PNG data URL
+          const pngUrl = canvas.toDataURL('image/png');
+          
+          // Create download link
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngUrl;
+          downloadLink.download = 'qrcode.png';
+          
+          // Trigger download
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        };
+        
+        // Load SVG into image
+        img.src = svgUrl;
+        
+      } catch (error) {
+        console.error('Error during QR code download:', error);
+        alert('Failed to download QR code. Please try again.');
+      }
+    } else {
+      console.error('SVG element not found');
+      alert('Could not locate the QR code element. Please try again.');
+    }
+  }, 100);
+};
 
 const copyLink = async () => {
   try {
