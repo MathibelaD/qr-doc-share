@@ -55,7 +55,10 @@ const upload = multer({
 
 // 📤 Upload Endpoint
 app.post('/api/documents', upload.single('document'), async (req: Request, res: Response) => {
+  console.log("before try")
+
   try {
+    console.log("after try")
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const docId = uuidv4();
@@ -64,6 +67,7 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
     bufferStream.push(req.file.buffer);
     bufferStream.push(null);
 
+    console.log("before drive files")
     const uploaded = await drive.files.create({
       requestBody: {
         name: `${Date.now()}_${req.file.originalname}`,
@@ -76,6 +80,7 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
       fields: 'id',
     });
 
+    console.log("after drive files")
     const fileId = uploaded.data.id;
 
     await drive.permissions.create({
@@ -83,6 +88,7 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
       requestBody: { role: 'reader', type: 'anyone' },
     });
 
+    console.log("after permissions")
     const downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
     const qrCodeUrl = `https://your-frontend-domain.com/download/${docId}`;
 
@@ -96,9 +102,9 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
       accessCount: 0,
     });
 
-    return res.status(201).json({ documentId: docId, downloadUrl, qrCodeUrl });
+  console.error('Upload error:', err);   return res.status(201).json({ documentId: docId, downloadUrl, qrCodeUrl });
   } catch (err) {
-    console.error('Upload error:', err);
+   
     return res.status(500).json({ error: 'Upload failed' });
   }
 });
