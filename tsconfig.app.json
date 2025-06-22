@@ -1,12 +1,31 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.dom.json",
-  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "server"],
-  "exclude": ["src/**/__tests__/*"],
-  "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "extends": "@vue/tsconfig/tsconfig.json",
+    "compilerOptions": {
+      "composite": true,
+      "tsBuildInfoFile": "./node_modules/.tsconfig/tsconfig.app.tsbuildinfo",
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
+      "module": "ESNext",
+      "moduleResolution": "Bundler", // or "Node"
+      "target": "ESNext",
+      "baseUrl": ".", // Important for path aliases like @/
+      "paths": {
+        "@/*": ["./src/*"] // Maps @/ to your src directory
+      },
+      "types": ["vite/client", "node"] // "vite/client" for import.meta.env, "node" for general node types
+    },
+    "include": [
+      "src/**/*.ts",
+      "src/**/*.tsx",
+      "src/**/*.vue",
+      "src/**/*.js",
+      "src/**/*.jsx",
+      "env.d.ts" // Essential for Vite's env types
+    ],
+    "exclude": [
+      "node_modules",
+      "dist",
+      "api", // Exclude your backend API folder from frontend type checking
+      "**/*.spec.ts",
+      "**/*.spec.js"
+    ]
   }
-}

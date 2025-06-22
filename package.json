@@ -8,7 +8,8 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build --force tsconfig.app.json && tsc --build api/tsconfig.node.json",
+    "lint": "eslint . --ext .vue,.ts,.js,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
