@@ -189,7 +189,7 @@
         </p>
         <div class="mt-8">
           <router-link
-            to="/try-now"
+            to="/upload"
             class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary/90 transition-colors"
           >
             Try it Free
