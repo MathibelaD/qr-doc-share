@@ -1,0 +1,29 @@
+// api/tsconfig.node.json
+{
+    "extends": "@tsconfig/node22/tsconfig.json",
+    "compilerOptions": {
+      "composite": true,
+      "tsBuildInfoFile": "../node_modules/.tsconfig/tsconfig.node.tsbuildinfo", // Adjusted path
+      "lib": ["ES2022"],
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "target": "ES2022",
+      "outDir": "../dist/api", // This path is relative to the tsconfig file (api/dist/api)
+                                // So "../dist/api" means: go up one level (to project root), then into dist/api
+      "esModuleInterop": true,
+      "forceConsistentCasingInFileNames": true,
+      "skipLibCheck": true,
+      "allowJs": true
+    },
+    "include": [
+      "**/*.ts", // <-- CHANGE THIS: Now it means 'any .ts file in this directory (api) or its subdirectories'
+      "**/*.js"  // <-- CHANGE THIS: Now it means 'any .js file in this directory (api) or its subdirectories'
+    ],
+    "exclude": [
+      "node_modules", // This will correctly find node_modules if they were in api/
+      "../dist",    // <-- Adjusted: Go up one level (project root), then exclude 'dist'
+      "../src",     // <-- Adjusted: Go up one level (project root), then exclude 'src'
+      "**/*.spec.ts",
+      "**/*.spec.js"
+    ]
+  }

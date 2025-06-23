@@ -7,24 +7,20 @@ import { google } from 'googleapis';
 import { Readable } from 'stream';
 import fs from 'fs';
 import path from 'path';
+import { createServerlessHandler } from './serverless-handler'; // helper adapter
+import { fileURLToPath } from 'url';
+import { basename } from 'path';
+import 'dotenv/config';
+
 
 const app = express();
-const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// In-memory document store
-const documents: {
-  id: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  path: string; // Google Drive file ID
-  uploadDate: Date;
-  accessCount: number;
-}[] = [];
+// In-memory store (temporary only — no persistence)
+const documents = [];
 
-// 🔐 Decode credentials from ENV to /tmp
+// 🔐 Decode credentials from ENV and write to /tmp (Vercel supports writing to /tmp)
 const SERVICE_ACCOUNT_PATH = path.join('/tmp', 'serviceAccount.json');
 if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
   const base64 = process.env.SERVICE_ACCOUNT_BASE64;
@@ -39,7 +35,7 @@ const auth = new google.auth.GoogleAuth({
 });
 const drive = google.drive({ version: 'v3', auth });
 
-// 📦 Memory-only multer config
+// 📦 Multer memory upload
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
@@ -53,12 +49,9 @@ const upload = multer({
   },
 });
 
-// 📤 Upload Endpoint
+// 📤 Upload file to Google Drive
 app.post('/api/documents', upload.single('document'), async (req: Request, res: Response) => {
-  console.log("before try")
-
   try {
-    console.log("after try")
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const docId = uuidv4();
@@ -67,7 +60,6 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
     bufferStream.push(req.file.buffer);
     bufferStream.push(null);
 
-    console.log("before drive files")
     const uploaded = await drive.files.create({
       requestBody: {
         name: `${Date.now()}_${req.file.originalname}`,
@@ -80,7 +72,6 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
       fields: 'id',
     });
 
-    console.log("after drive files")
     const fileId = uploaded.data.id;
 
     await drive.permissions.create({
@@ -88,7 +79,6 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
       requestBody: { role: 'reader', type: 'anyone' },
     });
 
-    console.log("after permissions")
     const downloadUrl = `https://drive.google.com/uc?id=${fileId}&export=download`;
     const qrCodeUrl = `https://your-frontend-domain.com/download/${docId}`;
 
@@ -102,14 +92,14 @@ app.post('/api/documents', upload.single('document'), async (req: Request, res: 
       accessCount: 0,
     });
 
-  console.error('Upload error:', err);   return res.status(201).json({ documentId: docId, downloadUrl, qrCodeUrl });
+    return res.status(201).json({ documentId: docId, downloadUrl, qrCodeUrl });
   } catch (err) {
-   
+    console.error('Upload error:', err);
     return res.status(500).json({ error: 'Upload failed' });
   }
 });
 
-// 📥 Download redirect
+// 📥 File download redirect
 app.get('/api/documents/:id', (req: Request, res: Response) => {
   const doc = documents.find(d => d.id === req.params.id);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
@@ -118,7 +108,7 @@ app.get('/api/documents/:id', (req: Request, res: Response) => {
   return res.redirect(url);
 });
 
-// ℹ️ Metadata
+// ℹ️ File metadata
 app.get('/api/documents/:id/info', (req: Request, res: Response) => {
   const doc = documents.find(d => d.id === req.params.id);
   if (!doc) return res.status(404).json({ error: 'Document not found' });
@@ -126,11 +116,17 @@ app.get('/api/documents/:id/info', (req: Request, res: Response) => {
   res.json(info);
 });
 
-// 🔗 Redirect to frontend download page via short link
+// 🔗 Short URL redirect
 app.get('/d/:id', (req: Request, res: Response) => {
   return res.redirect(`https://your-frontend-domain.com/download/${req.params.id}`);
 });
+const currentFile = basename(fileURLToPath(import.meta.url));
 
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
-});
+if (currentFile === 'index.ts') {
+  const port = 3000;
+  app.listen(port, () => {
+    console.log(`🚀 Local server running at http://localhost:${port}`);
+  });
+}
+// ❌ No app.listen() here — use Vercel handler
+export default createServerlessHandler(app);

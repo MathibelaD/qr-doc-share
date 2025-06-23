@@ -1,0 +1,46 @@
+.
+├── README.md
+├── api
+│   ├── index.ts
+│   ├── serverless-handler.ts
+│   └── tsconfig.node.json
+├── index.html
+├── package.json
+├── pnpm-lock.yaml
+├── postcss.config.js
+├── public
+│   ├── favicon.ico
+│   └── index.html
+├── src
+│   ├── App.vue
+│   ├── assets
+│   │   ├── base.css
+│   │   ├── logo.svg
+│   │   └── main.css
+│   ├── components
+│   │   ├── HelloWorld.vue
+│   │   ├── TheNavigation.vue
+│   │   ├── TheWelcome.vue
+│   │   ├── WelcomeItem.vue
+│   │   └── icons
+│   ├── main.ts
+│   ├── router
+│   │   └── index.ts
+│   ├── services
+│   │   ├── DocumentService.ts
+│   │   └── useFileUpload.ts
+│   ├── stores
+│   │   └── counter.ts
+│   └── views
+│       ├── Download.vue
+│       ├── Features.vue
+│       ├── Home.vue
+│       ├── Pricing.vue
+│       └── Upload.vue
+├── structure.txt
+├── tailwind.config.js
+├── tsconfig.app.json
+├── vercel.json
+└── vite.config.ts
+
+11 directories, 33 files
