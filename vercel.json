@@ -1,5 +1,6 @@
 {
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "pnpm install && pnpm run build",
   "outputDirectory": "dist",
-  "framework": "vite"
+  "framework": "vite",
+  "installCommand": "pnpm install"
 }
