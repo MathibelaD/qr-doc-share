@@ -158,6 +158,7 @@
 import { ref } from 'vue'
 import QRCode from 'qrcode'
 import QRCodeVue3 from 'qrcode-vue3'
+import { DocumentService } from '@/services/DocumentService'
 import {
   CloudArrowUpIcon,
   DocumentIcon,
@@ -247,27 +248,13 @@ const uploadFileToServer = async (file: File) => {
   uploadError.value = null
   uploadProgress.value = 0
 
-  const formData = new FormData()
-  formData.append('document', file)
-
   try {
-    const res = await fetch('/api/documents', {
-      method: 'POST',
-      body: formData,
+    const data = await DocumentService.uploadDocument(file, (progress) => {
+      uploadProgress.value = progress
     })
 
-    if (!res.ok) {
-      throw new Error(`Upload failed with status ${res.status}`)
-    }
-
-    const data = await res.json()
-    if (!data.downloadUrl) throw new Error("No downloadUrl received from server")
-
     downloadUrl.value = data.downloadUrl
-
-    // Generate QR code image (data URL) from the download link
-    const qr = await QRCode.toDataURL(data.downloadUrl)
-    qrCodeUrl.value = qr
+    qrCodeUrl.value = data.qrCodeUrl
 
     isUploading.value = false
     return true
@@ -291,49 +278,37 @@ const startUpload = async () => {
 }
 
 // Download QR code as PNG
-const downloadQR = () => {
-  setTimeout(() => {
-    const svg = document.querySelector('.qrcode svg') || document.querySelector('svg')
-    if (!svg) {
-      alert('QR code not found to download')
+const downloadQR = async () => {
+  try {
+    if (!downloadUrl.value) {
+      alert('No QR code to download')
       return
     }
 
-    try {
-      const canvas = document.createElement('canvas')
-      const rect = svg.getBoundingClientRect()
-      canvas.width = rect.width
-      canvas.height = rect.height
-
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Canvas context not available')
-
-      const svgData = new XMLSerializer().serializeToString(svg)
-      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-
-      const img = new Image()
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0)
-        URL.revokeObjectURL(url)
-
-        const pngUrl = canvas.toDataURL('image/png')
-        const link = document.createElement('a')
-        link.href = pngUrl
-        link.download = 'qrcode.png'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+    // Generate high-resolution QR code
+    const qrDataUrl = await QRCode.toDataURL(downloadUrl.value, {
+      width: 512,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
       }
-      img.src = url
-    } catch (error) {
-      alert('Failed to download QR code.')
-      console.error(error)
-    }
-  }, 100)
+    })
+
+    // Create download link
+    const link = document.createElement('a')
+    link.href = qrDataUrl
+    link.download = 'qrcode.png'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (error) {
+    alert('Failed to download QR code.')
+    console.error(error)
+  }
 }
 
-// Copy the raw download link to clipboard
+// Copy the direct download URL to clipboard
 const copyLink = async () => {
   try {
     if (!downloadUrl.value) {

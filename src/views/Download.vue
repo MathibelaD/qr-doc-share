@@ -70,14 +70,23 @@ onMounted(async () => {
     const info = await DocumentService.getDocumentInfo(documentId);
     documentInfo.value = info;
     
-    // Set download URL
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-    downloadUrl.value = `${baseUrl}/documents/${documentId}`;
+    // Get the actual Supabase file URL
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      import.meta.env.VITE_SUPABASE_URL,
+      import.meta.env.VITE_SUPABASE_ANON_KEY
+    );
+    
+    const { data: { publicUrl } } = supabase.storage
+      .from('documents')
+      .getPublicUrl(info.fileName);
+    
+    downloadUrl.value = publicUrl;
     
     loading.value = false;
   } catch (err: any) {
     loading.value = false;
-    error.value = err.response?.data?.error || 'Failed to load document information';
+    error.value = err.message || 'Failed to load document information';
     console.error('Error fetching document:', err);
   }
 });
