@@ -13,41 +13,57 @@ CREATE TABLE documents (
   file_name TEXT NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  access_count INTEGER DEFAULT 0
+  access_count INTEGER DEFAULT 0,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
--- 2. Create index for faster expiration queries
+-- 2. Create indexes
 CREATE INDEX idx_documents_expires_at ON documents(expires_at);
+CREATE INDEX idx_documents_user_id ON documents(user_id);
 
 -- 3. Enable Row Level Security
 ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
--- 4. Allow public read/write access
-CREATE POLICY "Allow public insert" ON documents
-FOR INSERT TO anon WITH CHECK (true);
+-- 4. RLS Policies
+-- Users can insert their own documents
+CREATE POLICY "Users can insert own documents" ON documents
+FOR INSERT TO authenticated
+WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Allow public select" ON documents
-FOR SELECT TO anon USING (true);
+-- Users can view their own documents
+CREATE POLICY "Users can view own documents" ON documents
+FOR SELECT TO authenticated
+USING (auth.uid() = user_id);
 
-CREATE POLICY "Allow public delete" ON documents
-FOR DELETE TO anon USING (true);
+-- Users can delete their own documents
+CREATE POLICY "Users can delete own documents" ON documents
+FOR DELETE TO authenticated
+USING (auth.uid() = user_id);
 
--- 5. Create storage bucket (run separately if this fails)
+-- Anyone can view document info (for download page)
+CREATE POLICY "Public can view document info" ON documents
+FOR SELECT TO anon
+USING (true);
+
+-- 5. Create storage bucket
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('documents', 'documents', true)
 ON CONFLICT (id) DO NOTHING;
 
--- 6. Storage policies - allow public uploads and reads
-CREATE POLICY "Allow public uploads" ON storage.objects
-FOR INSERT TO anon WITH CHECK (bucket_id = 'documents');
+-- 6. Storage policies
+CREATE POLICY "Authenticated users can upload" ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (bucket_id = 'documents');
 
-CREATE POLICY "Allow public reads" ON storage.objects
-FOR SELECT TO anon USING (bucket_id = 'documents');
+CREATE POLICY "Anyone can read files" ON storage.objects
+FOR SELECT TO public
+USING (bucket_id = 'documents');
 
-CREATE POLICY "Allow public deletes" ON storage.objects
-FOR DELETE TO anon USING (bucket_id = 'documents');
+CREATE POLICY "Users can delete own files" ON storage.objects
+FOR DELETE TO authenticated
+USING (bucket_id = 'documents');
 
--- 7. Function to delete expired documents
+-- 7. Cleanup function for expired documents
 CREATE OR REPLACE FUNCTION cleanup_expired_documents()
 RETURNS INTEGER AS $$
 DECLARE
@@ -58,11 +74,9 @@ BEGIN
     SELECT file_name, document_id FROM documents
     WHERE expires_at < NOW()
   LOOP
-    -- Delete file from storage
     DELETE FROM storage.objects
     WHERE bucket_id = 'documents' AND name = expired_doc.file_name;
 
-    -- Delete metadata from table
     DELETE FROM documents WHERE document_id = expired_doc.document_id;
 
     deleted_count := deleted_count + 1;
@@ -72,13 +86,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 8. Enable pg_cron extension for scheduled cleanup
--- NOTE: pg_cron may need to be enabled in Supabase Dashboard > Database > Extensions
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-
--- 9. Schedule daily cleanup at 2 AM UTC
-SELECT cron.schedule(
-  'cleanup-expired-docs',
-  '0 2 * * *',
-  'SELECT cleanup_expired_documents();'
-);
+-- 8. Enable pg_cron (if available on your plan)
+-- CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- SELECT cron.schedule('cleanup-expired-docs', '0 2 * * *', 'SELECT cleanup_expired_documents();');

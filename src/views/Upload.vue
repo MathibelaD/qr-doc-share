@@ -39,6 +39,22 @@
         </div>
       </div>
 
+      <!-- Trial Used Banner -->
+      <div v-if="!isAuthenticated && trialUsed && currentStep === 0" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+        <div class="flex items-start">
+          <svg class="h-5 w-5 text-amber-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <h3 class="text-sm font-medium text-amber-800">Free trial used</h3>
+            <p class="mt-1 text-sm text-amber-700">You've used your one free upload. Create an account to upload unlimited documents.</p>
+            <router-link to="/auth" class="mt-3 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors">
+              Sign Up Free
+            </router-link>
+          </div>
+        </div>
+      </div>
+
       <!-- Upload Zone -->
       <div class="bg-white rounded-xl shadow-sm p-8">
         <!-- Step 1: Upload -->
@@ -155,10 +171,12 @@
 
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import QRCode from 'qrcode'
 import QRCodeVue3 from 'qrcode-vue3'
-import { DocumentService } from '@/services/DocumentService'
+import { DocumentService } from '../services/DocumentService'
+import { supabase } from '../services/supabase'
 import {
   CloudArrowUpIcon,
   DocumentIcon,
@@ -169,18 +187,27 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/vue/24/outline'
 
+const router = useRouter()
 const qrCodeUrl = ref('')
 const downloadUrl = ref('')
 
 const uploadProgress = ref(0)
 const isUploading = ref(false)
 const uploadError = ref<string | null>(null)
+const trialUsed = ref(false)
+const isAuthenticated = ref(false)
 
 const currentStep = ref(0)
 const isDragging = ref(false)
 const selectedFile = ref<File | null>(null)
 
 const fileInput = ref<HTMLInputElement>()
+
+onMounted(async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  isAuthenticated.value = !!user
+  trialUsed.value = localStorage.getItem('trialUsed') === 'true'
+})
 
 // Steps configuration for UI
 const steps = [
@@ -267,10 +294,22 @@ const uploadFileToServer = async (file: File) => {
 
 const startUpload = async () => {
   if (!selectedFile.value) return
+
+  // Check if user is authenticated or has free trial
+  if (!isAuthenticated.value && trialUsed.value) {
+    uploadError.value = 'Your free trial has been used. Please sign up to continue uploading.'
+    return
+  }
+
   currentStep.value = 1 // Processing step
   const success = await uploadFileToServer(selectedFile.value)
 
   if (success) {
+    // Mark trial as used for non-authenticated users
+    if (!isAuthenticated.value) {
+      localStorage.setItem('trialUsed', 'true')
+      trialUsed.value = true
+    }
     currentStep.value = 2 // Success step
   } else {
     currentStep.value = 0 // Back to upload step on failure

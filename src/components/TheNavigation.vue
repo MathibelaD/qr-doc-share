@@ -23,18 +23,41 @@
             <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
           </router-link>
 
-          <!-- Primary CTA Button -->
-          <div class="ml-6 relative group">
-            <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-purple-600 rounded-lg blur opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
-            <router-link 
-              to="/upload"
-              class="relative flex items-center px-6 py-3 bg-white rounded-lg leading-none"
+          <!-- CTA Buttons (logged out) -->
+          <div v-if="!user" class="ml-6 flex items-center gap-3">
+            <router-link
+              to="/auth"
+              class="px-5 py-2.5 text-sm font-semibold text-primary border-2 border-primary rounded-lg hover:bg-primary/5 transition-colors"
             >
-              <span class="pr-6 font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                Try it Free
-              </span>
-              <ArrowRightIcon class="h-5 w-5 text-primary group-hover:translate-x-1 transition-transform" />
+              Sign Up
             </router-link>
+            <div class="relative group">
+              <div class="absolute -inset-0.5 bg-gradient-to-r from-primary to-primary-dark rounded-lg blur opacity-50 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+              <router-link 
+                to="/upload"
+                class="relative flex items-center px-5 py-2.5 bg-primary rounded-lg leading-none"
+              >
+                <span class="font-semibold text-sm text-white">
+                  Try it Free
+                </span>
+              </router-link>
+            </div>
+          </div>
+
+          <!-- Logged in user menu -->
+          <div v-else class="ml-6 flex items-center gap-3">
+            <router-link
+              to="/dashboard"
+              class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-md transition-colors"
+            >
+              Dashboard
+            </router-link>
+            <button
+              @click="handleSignOut"
+              class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-red-600 rounded-md transition-colors"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
 
@@ -74,14 +97,38 @@
           </router-link>
 
           <!-- Mobile CTA -->
-          <router-link 
-            to="/upload"
-            class="block mt-4 mx-4 px-4 py-3 bg-gradient-to-r from-primary to-purple-600 text-white font-semibold rounded-lg text-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
-            @click="isOpen = false"
-          >
-            Try it Free
-            <ArrowRightIcon class="h-5 w-5 inline-block ml-2" />
-          </router-link>
+          <template v-if="!user">
+            <router-link
+              to="/auth"
+              class="block mt-4 mx-4 px-4 py-3 border-2 border-primary text-primary font-semibold rounded-lg text-center hover:bg-primary/5 transition-colors"
+              @click="isOpen = false"
+            >
+              Sign Up
+            </router-link>
+            <router-link 
+              to="/upload"
+              class="block mt-3 mx-4 px-4 py-3 bg-primary text-white font-semibold rounded-lg text-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+              @click="isOpen = false"
+            >
+              Try it Free
+            </router-link>
+          </template>
+
+          <template v-else>
+            <router-link
+              to="/dashboard"
+              class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+              @click="isOpen = false"
+            >
+              Dashboard
+            </router-link>
+            <button
+              @click="handleSignOut; isOpen = false"
+              class="block w-full text-left px-4 py-2 text-base font-medium text-red-500 hover:bg-red-50 rounded-md"
+            >
+              Sign Out
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -89,10 +136,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { QrCodeIcon, Bars3Icon, XMarkIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { ref, onMounted } from 'vue'
+import { QrCodeIcon, Bars3Icon, XMarkIcon, ArrowRightIcon, UserCircleIcon } from '@heroicons/vue/24/outline'
+import { AuthService } from '../services/AuthService'
+import type { User } from '@supabase/supabase-js'
 
 const isOpen = ref(false)
+const user = ref<User | null>(null)
+
+onMounted(async () => {
+  user.value = await AuthService.getUser()
+  AuthService.onAuthStateChange((u) => {
+    user.value = u
+  })
+})
+
+const handleSignOut = async () => {
+  await AuthService.signOut()
+  user.value = null
+}
 
 const navigationItems = [
   { name: 'Home', to: '/' },
