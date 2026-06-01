@@ -1,4 +1,3 @@
-// src/views/Download.vue
 <template>
   <main class="min-h-screen bg-gray-50 pt-20">
     <div class="max-w-lg mx-auto px-4 sm:px-6 py-12">
@@ -28,11 +27,12 @@
           <h2 class="mt-4 text-xl font-semibold text-gray-900">Document Ready</h2>
           
           <div class="mt-8 bg-gray-50 p-6 rounded-lg text-left">
-            <h3 class="text-lg font-medium text-gray-900">{{ documentInfo.originalName }}</h3>
+            <h3 class="text-lg font-medium text-gray-900">{{ documentInfo.original_name }}</h3>
             <div class="mt-2 text-sm text-gray-500 space-y-1">
-              <p>Type: {{ formatFileType(documentInfo.mimeType) }}</p>
-              <p>Size: {{ formatFileSize(documentInfo.size) }}</p>
-              <p>Uploaded: {{ formatDate(documentInfo.uploadDate) }}</p>
+              <p>Type: {{ formatFileType(documentInfo.mime_type) }}</p>
+              <p>Size: {{ formatFileSize(documentInfo.file_size) }}</p>
+              <p>Uploaded: {{ formatDate(documentInfo.upload_date) }}</p>
+              <p class="text-amber-600 font-medium">Expires: {{ formatDate(documentInfo.expires_at) }}</p>
             </div>
           </div>
           
@@ -53,8 +53,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { DocumentService } from '@/services/DocumentService';
-import type { DocumentInfo } from '@/services/DocumentService';
+import { DocumentService } from '../services/DocumentService';
+import type { DocumentInfo } from '../services/DocumentService';
+import { supabase } from '../services/supabase';
 import { DocumentIcon, ExclamationCircleIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 
 const route = useRoute();
@@ -66,23 +67,14 @@ const downloadUrl = ref('');
 
 onMounted(async () => {
   try {
-    // Get document info
     const info = await DocumentService.getDocumentInfo(documentId);
     documentInfo.value = info;
     
-    // Get the actual Supabase file URL
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY
-    );
-    
     const { data: { publicUrl } } = supabase.storage
       .from('documents')
-      .getPublicUrl(info.fileName);
+      .getPublicUrl(info.file_name);
     
     downloadUrl.value = publicUrl;
-    
     loading.value = false;
   } catch (err: any) {
     loading.value = false;
@@ -91,14 +83,12 @@ onMounted(async () => {
   }
 });
 
-// Helper functions
 function formatFileType(mimeType: string): string {
   const types: Record<string, string> = {
     'application/pdf': 'PDF Document',
     'application/msword': 'Word Document (.doc)',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word Document (.docx)'
   };
-  
   return types[mimeType] || mimeType;
 }
 
