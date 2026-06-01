@@ -27,7 +27,6 @@ const router = createRouter({
       path: '/upload',
       name: 'Upload',
       component: () => import('../views/Upload.vue'),
-      meta: { requiresAuth: true }
     },
     {
       path: '/dashboard',
