@@ -159,7 +159,6 @@ const handleSignOut = async () => {
 const navigationItems = [
   { name: 'Home', to: '/' },
   { name: 'Features', to: '/features' },
-  { name: 'How it Works', to: '/#how-it-works' },
 ]
 
 // Optional: Close mobile menu when route changes

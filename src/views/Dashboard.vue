@@ -4,8 +4,8 @@
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">My Documents</h1>
-          <p class="text-sm text-gray-500 mt-1">Manage your uploaded documents and QR codes</p>
+          <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p class="text-sm text-gray-500 mt-1">Manage documents and generate QR codes</p>
         </div>
         <router-link
           to="/upload"
@@ -16,76 +16,169 @@
         </router-link>
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
-        <p class="mt-4 text-sm text-gray-500">Loading documents...</p>
+      <!-- Tabs -->
+      <div class="border-b border-gray-200 mb-8">
+        <nav class="flex space-x-8">
+          <button
+            @click="activeTab = 'documents'"
+            class="pb-3 px-1 text-sm font-medium border-b-2 transition-colors"
+            :class="activeTab === 'documents' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          >
+            <DocumentIcon class="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
+            My Documents
+          </button>
+          <button
+            @click="activeTab = 'link-qr'"
+            class="pb-3 px-1 text-sm font-medium border-b-2 transition-colors"
+            :class="activeTab === 'link-qr' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'"
+          >
+            <LinkIcon class="h-4 w-4 inline-block mr-1.5 -mt-0.5" />
+            Link to QR
+          </button>
+        </nav>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="documents.length === 0" class="text-center py-16 bg-white rounded-xl shadow-sm">
-        <DocumentIcon class="h-12 w-12 text-gray-300 mx-auto" />
-        <h3 class="mt-4 text-lg font-medium text-gray-900">No documents yet</h3>
-        <p class="mt-2 text-sm text-gray-500">Upload your first document to get started</p>
-        <router-link
-          to="/upload"
-          class="mt-6 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
-        >
-          Upload Document
-        </router-link>
-      </div>
+      <!-- Documents Tab -->
+      <div v-if="activeTab === 'documents'">
+        <!-- Loading -->
+        <div v-if="loading" class="text-center py-12">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+          <p class="mt-4 text-sm text-gray-500">Loading documents...</p>
+        </div>
 
-      <!-- Documents Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="doc in documents"
-          :key="doc.document_id"
-          class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
-        >
-          <!-- File Icon & Name -->
-          <div class="flex items-start justify-between">
-            <div class="flex items-center min-w-0">
-              <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" :class="getFileColor(doc.mime_type)">
-                <DocumentTextIcon class="h-5 w-5 text-white" />
+        <!-- Empty State -->
+        <div v-else-if="documents.length === 0" class="text-center py-16 bg-white rounded-xl shadow-sm">
+          <DocumentIcon class="h-12 w-12 text-gray-300 mx-auto" />
+          <h3 class="mt-4 text-lg font-medium text-gray-900">No documents yet</h3>
+          <p class="mt-2 text-sm text-gray-500">Upload your first document to get started</p>
+          <router-link
+            to="/upload"
+            class="mt-6 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
+          >
+            Upload Document
+          </router-link>
+        </div>
+
+        <!-- Documents Grid -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            v-for="doc in documents"
+            :key="doc.document_id"
+            class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow"
+          >
+            <div class="flex items-start justify-between">
+              <div class="flex items-center min-w-0">
+                <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center" :class="getFileColor(doc.mime_type)">
+                  <DocumentTextIcon class="h-5 w-5 text-white" />
+                </div>
+                <div class="ml-3 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">{{ doc.original_name }}</p>
+                  <p class="text-xs text-gray-500">{{ formatFileSize(doc.file_size) }}</p>
+                </div>
               </div>
-              <div class="ml-3 min-w-0">
-                <p class="text-sm font-medium text-gray-900 truncate">{{ doc.original_name }}</p>
-                <p class="text-xs text-gray-500">{{ formatFileSize(doc.file_size) }}</p>
-              </div>
+              <button @click="deleteDoc(doc)" class="text-gray-400 hover:text-red-500 transition-colors">
+                <TrashIcon class="h-4 w-4" />
+              </button>
             </div>
-            <button @click="deleteDoc(doc)" class="text-gray-400 hover:text-red-500 transition-colors">
-              <TrashIcon class="h-4 w-4" />
-            </button>
-          </div>
 
-          <!-- Expiration -->
-          <div class="mt-4 flex items-center text-xs" :class="isExpired(doc) ? 'text-red-500' : 'text-gray-500'">
-            <ClockIcon class="h-3.5 w-3.5 mr-1" />
-            <span v-if="isExpired(doc)">Expired</span>
-            <span v-else>Expires {{ formatTimeLeft(doc.expires_at) }}</span>
-          </div>
+            <div class="mt-4 flex items-center text-xs" :class="isExpired(doc) ? 'text-red-500' : 'text-gray-500'">
+              <ClockIcon class="h-3.5 w-3.5 mr-1" />
+              <span v-if="isExpired(doc)">Expired</span>
+              <span v-else>Expires {{ formatTimeLeft(doc.expires_at) }}</span>
+            </div>
 
-          <!-- Actions -->
-          <div v-if="!isExpired(doc)" class="mt-4 flex gap-2">
-            <button
-              @click="copyLink(doc)"
-              class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <LinkIcon class="h-3.5 w-3.5 mr-1" />
-              Copy Link
-            </button>
-            <button
-              @click="showQR(doc)"
-              class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              <QrCodeIcon class="h-3.5 w-3.5 mr-1" />
-              QR Code
-            </button>
+            <div v-if="!isExpired(doc)" class="mt-4 flex gap-2">
+              <button
+                @click="copyDocLink(doc)"
+                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <LinkIcon class="h-3.5 w-3.5 mr-1" />
+                Copy Link
+              </button>
+              <button
+                @click="showDocQR(doc)"
+                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <QrCodeIcon class="h-3.5 w-3.5 mr-1" />
+                QR Code
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- QR Code Modal -->
+      <!-- Link to QR Tab -->
+      <div v-if="activeTab === 'link-qr'">
+        <div class="max-w-lg mx-auto">
+          <div class="bg-white rounded-xl shadow-sm p-8">
+            <!-- Input -->
+            <div v-if="!generatedUrl">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Website URL</label>
+              <div class="flex gap-3">
+                <input
+                  v-model="linkUrl"
+                  type="url"
+                  class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  placeholder="https://example.com"
+                  @keyup.enter="generateLinkQR"
+                />
+                <button
+                  @click="generateLinkQR"
+                  :disabled="!isValidUrl"
+                  class="px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Generate
+                </button>
+              </div>
+              <p v-if="linkUrl && !isValidUrl" class="mt-2 text-sm text-red-500">Please enter a valid URL</p>
+            </div>
+
+            <!-- Result -->
+            <div v-else class="text-center">
+              <div class="mb-6">
+                <CheckCircleIcon class="h-10 w-10 text-green-500 mx-auto" />
+                <h3 class="mt-3 text-lg font-medium text-gray-900">QR Code Ready!</h3>
+                <p class="mt-1 text-sm text-gray-500 truncate max-w-md mx-auto">{{ generatedUrl }}</p>
+              </div>
+
+              <div class="bg-gray-50 p-6 rounded-lg inline-block">
+                <QRCodeVue3
+                  :value="generatedUrl"
+                  :size="250"
+                  level="H"
+                  render-as="svg"
+                />
+              </div>
+
+              <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-3">
+                <button
+                  @click="downloadLinkQR"
+                  class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <ArrowDownTrayIcon class="h-4 w-4 mr-2" />
+                  Download QR
+                </button>
+                <button
+                  @click="copyGeneratedUrl"
+                  class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <ClipboardIcon class="h-4 w-4 mr-2" />
+                  Copy URL
+                </button>
+                <button
+                  @click="generatedUrl = ''; linkUrl = ''"
+                  class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <ArrowPathIcon class="h-4 w-4 mr-2" />
+                  New QR
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QR Code Modal (for documents) -->
       <div v-if="showQRModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click.self="showQRModal = false">
         <div class="bg-white rounded-xl p-8 max-w-sm w-full text-center">
           <h3 class="text-lg font-medium text-gray-900 mb-4">{{ selectedDoc?.original_name }}</h3>
@@ -99,7 +192,7 @@
           </div>
           <div class="mt-6 flex gap-3">
             <button
-              @click="downloadQR"
+              @click="downloadDocQR"
               class="flex-1 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90"
             >
               Download QR
@@ -118,7 +211,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import QRCode from 'qrcode'
 import QRCodeVue3 from 'qrcode-vue3'
 import { DocumentService } from '../services/DocumentService'
@@ -130,14 +223,34 @@ import {
   TrashIcon,
   LinkIcon,
   ClockIcon,
-  QrCodeIcon
+  QrCodeIcon,
+  CheckCircleIcon,
+  ArrowDownTrayIcon,
+  ArrowPathIcon,
+  ClipboardIcon
 } from '@heroicons/vue/24/outline'
 
+const activeTab = ref<'documents' | 'link-qr'>('documents')
 const documents = ref<DocumentInfo[]>([])
 const loading = ref(true)
+
+// Document QR modal
 const showQRModal = ref(false)
 const selectedDoc = ref<DocumentInfo | null>(null)
 const selectedDocUrl = ref('')
+
+// Link QR
+const linkUrl = ref('')
+const generatedUrl = ref('')
+
+const isValidUrl = computed(() => {
+  try {
+    new URL(linkUrl.value)
+    return true
+  } catch {
+    return false
+  }
+})
 
 onMounted(async () => {
   await loadDocuments()
@@ -154,6 +267,7 @@ const loadDocuments = async () => {
   }
 }
 
+// Document actions
 const deleteDoc = async (doc: DocumentInfo) => {
   if (!confirm(`Delete "${doc.original_name}"?`)) return
   try {
@@ -164,24 +278,22 @@ const deleteDoc = async (doc: DocumentInfo) => {
   }
 }
 
-const copyLink = (doc: DocumentInfo) => {
+const copyDocLink = (doc: DocumentInfo) => {
   const url = DocumentService.getPublicUrl(doc.file_name)
   navigator.clipboard.writeText(url)
   alert('Link copied!')
 }
 
-const showQR = (doc: DocumentInfo) => {
+const showDocQR = (doc: DocumentInfo) => {
   selectedDoc.value = doc
   selectedDocUrl.value = DocumentService.getPublicUrl(doc.file_name)
   showQRModal.value = true
 }
 
-const downloadQR = async () => {
+const downloadDocQR = async () => {
   if (!selectedDocUrl.value) return
   const qrDataUrl = await QRCode.toDataURL(selectedDocUrl.value, {
-    width: 512,
-    margin: 2,
-    color: { dark: '#000000', light: '#FFFFFF' }
+    width: 512, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
   })
   const link = document.createElement('a')
   link.href = qrDataUrl
@@ -189,6 +301,28 @@ const downloadQR = async () => {
   link.click()
 }
 
+// Link QR actions
+const generateLinkQR = () => {
+  if (!isValidUrl.value) return
+  generatedUrl.value = linkUrl.value
+}
+
+const downloadLinkQR = async () => {
+  const qrDataUrl = await QRCode.toDataURL(generatedUrl.value, {
+    width: 512, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
+  })
+  const link = document.createElement('a')
+  link.href = qrDataUrl
+  link.download = 'qrcode.png'
+  link.click()
+}
+
+const copyGeneratedUrl = async () => {
+  await navigator.clipboard.writeText(generatedUrl.value)
+  alert('URL copied!')
+}
+
+// Helpers
 const isExpired = (doc: DocumentInfo) => new Date(doc.expires_at) < new Date()
 
 const getFileColor = (mimeType: string) => {
@@ -208,7 +342,6 @@ const formatTimeLeft = (expiresAt: string) => {
   const diff = expires.getTime() - now.getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-
   if (days > 0) return `in ${days}d ${hours}h`
   if (hours > 0) return `in ${hours}h`
   return 'soon'
