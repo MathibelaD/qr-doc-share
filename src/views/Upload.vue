@@ -8,14 +8,19 @@
       </div>
 
       <!-- Trial Used Banner -->
-      <div v-if="!isAuthenticated && trialUsed" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+      <div v-if="!isAuthenticated && (docTrialCount >= DOC_TRIAL_LIMIT || linkTrialCount >= LINK_TRIAL_LIMIT)" class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
         <div class="flex items-start">
           <svg class="h-5 w-5 text-amber-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
           </svg>
           <div>
-            <h3 class="text-sm font-medium text-amber-800">Free trial used</h3>
-            <p class="mt-1 text-sm text-amber-700">You've used your free trial. Create an account to generate unlimited QR codes.</p>
+            <h3 class="text-sm font-medium text-amber-800">Free trial limit reached</h3>
+            <p class="mt-1 text-sm text-amber-700">
+              <span v-if="docTrialCount >= DOC_TRIAL_LIMIT && linkTrialCount >= LINK_TRIAL_LIMIT">You've used all your free trials.</span>
+              <span v-else-if="docTrialCount >= DOC_TRIAL_LIMIT">You've used your 2 free document uploads. Link QR codes: {{ LINK_TRIAL_LIMIT - linkTrialCount }} remaining.</span>
+              <span v-else>You've used your 2 free link QR codes. Document uploads: {{ DOC_TRIAL_LIMIT - docTrialCount }} remaining.</span>
+              Sign up for unlimited access.
+            </p>
             <router-link to="/auth" class="mt-3 inline-flex items-center px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors">
               Sign Up Free
             </router-link>
@@ -235,7 +240,10 @@ const activeTab = ref<'document' | 'link'>('document')
 
 // Auth state
 const isAuthenticated = ref(false)
-const trialUsed = ref(false)
+const docTrialCount = ref(0)
+const linkTrialCount = ref(0)
+const DOC_TRIAL_LIMIT = 2
+const LINK_TRIAL_LIMIT = 2
 
 // Document upload state
 const downloadUrl = ref('')
@@ -255,7 +263,8 @@ const linkError = ref('')
 onMounted(async () => {
   const { data: { user } } = await supabase.auth.getUser()
   isAuthenticated.value = !!user
-  trialUsed.value = localStorage.getItem('trialUsed') === 'true'
+  docTrialCount.value = parseInt(localStorage.getItem('docTrialCount') || '0')
+  linkTrialCount.value = parseInt(localStorage.getItem('linkTrialCount') || '0')
 })
 
 const isValidUrl = computed(() => {
@@ -301,8 +310,8 @@ const clearFile = () => {
 
 const startUpload = async () => {
   if (!selectedFile.value) return
-  if (!isAuthenticated.value && trialUsed.value) {
-    uploadError.value = 'Your free trial has been used. Please sign up to continue.'
+  if (!isAuthenticated.value && docTrialCount.value >= DOC_TRIAL_LIMIT) {
+    uploadError.value = 'You\'ve used your 2 free document uploads. Please sign up to continue.'
     return
   }
 
@@ -316,8 +325,8 @@ const startUpload = async () => {
     })
     downloadUrl.value = data.downloadUrl
     if (!isAuthenticated.value) {
-      localStorage.setItem('trialUsed', 'true')
-      trialUsed.value = true
+      docTrialCount.value++
+      localStorage.setItem('docTrialCount', docTrialCount.value.toString())
     }
     currentStep.value = 2
   } catch (err) {
@@ -331,14 +340,14 @@ const startUpload = async () => {
 // Link QR methods
 const generateLinkQR = () => {
   if (!isValidUrl.value) return
-  if (!isAuthenticated.value && trialUsed.value) {
-    linkError.value = 'Your free trial has been used. Please sign up to continue.'
+  if (!isAuthenticated.value && linkTrialCount.value >= LINK_TRIAL_LIMIT) {
+    linkError.value = 'You\'ve used your 2 free link QR codes. Please sign up to continue.'
     return
   }
   linkGenerated.value = true
   if (!isAuthenticated.value) {
-    localStorage.setItem('trialUsed', 'true')
-    trialUsed.value = true
+    linkTrialCount.value++
+    localStorage.setItem('linkTrialCount', linkTrialCount.value.toString())
   }
 }
 
