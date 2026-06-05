@@ -10,10 +10,10 @@
             data-aos-duration="1000"
           >
             <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
-              Share Documents <span class="text-primary">Securely</span> with QR Codes
+              Share Anything <span class="text-primary">Instantly</span> with QR Codes
             </h1>
             <p class="mt-6 text-lg text-gray-500">
-              Upload your documents and share them instantly with a QR code. Simple, secure, and efficient document sharing for everyone.
+              Upload documents or paste any link — get a scannable QR code in seconds. Simple, secure sharing for everyone.
             </p>
             <div class="mt-8 sm:flex sm:justify-center lg:justify-start">
               <div class="rounded-md shadow" data-aos="fade-up" data-aos-delay="200">
@@ -103,7 +103,7 @@
             How It Works
           </h2>
           <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-500">
-            Share your documents in three simple steps
+            Generate QR codes in three simple steps
           </p>
         </div>
 
@@ -117,8 +117,8 @@
               <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                 <ArrowUpTrayIcon class="w-8 h-8 text-primary" />
               </div>
-              <h3 class="mt-4 text-lg font-semibold text-gray-900">1. Upload</h3>
-              <p class="mt-2 text-gray-500">Upload your document to our secure platform</p>
+              <h3 class="mt-4 text-lg font-semibold text-gray-900">1. Upload or Paste</h3>
+              <p class="mt-2 text-gray-500">Upload a document or paste any website link</p>
             </div>
 
             <div 
@@ -130,7 +130,7 @@
                 <QrCodeIcon class="w-8 h-8 text-primary" />
               </div>
               <h3 class="mt-4 text-lg font-semibold text-gray-900">2. Get QR Code</h3>
-              <p class="mt-2 text-gray-500">Receive a unique QR code for your document</p>
+              <p class="mt-2 text-gray-500">Instantly receive a unique, scannable QR code</p>
             </div>
 
             <div 
@@ -142,7 +142,7 @@
                 <ShareIcon class="w-8 h-8 text-primary" />
               </div>
               <h3 class="mt-4 text-lg font-semibold text-gray-900">3. Share</h3>
-              <p class="mt-2 text-gray-500">Share the QR code with anyone who needs access</p>
+              <p class="mt-2 text-gray-500">Download or share the QR code with anyone</p>
             </div>
           </div>
         </div>
@@ -248,6 +248,6 @@
 </template>
 
 <script setup lang="ts">
-import { LockClosedIcon, BoltIcon, DevicePhoneMobileIcon, ArrowUpTrayIcon, QrCodeIcon, ShareIcon, FolderIcon, TrashIcon, ClockIcon, ShieldCheckIcon, ArrowPathIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { LockClosedIcon, BoltIcon, DevicePhoneMobileIcon, ArrowUpTrayIcon, QrCodeIcon, ShareIcon, FolderIcon, TrashIcon, ClockIcon, ShieldCheckIcon, ArrowPathIcon, ArrowRightIcon, LinkIcon } from '@heroicons/vue/24/outline'
 import HeroIllustration from '@/components/icons/HeroIllustration.vue'
 </script>
